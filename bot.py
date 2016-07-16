@@ -19,7 +19,7 @@ class ContextAwareMarkovBot():
     def generate_message(self, prompt):
         prompt = prompt.lower()
         prompt = \
-            "".join([ch for ch in prompt if ch not in string.punctuation]) 
+            "".join([ch for ch in prompt if ch not in "'"]) 
 
         words = word_tokenize(prompt)
         chain = pos_tag(words)
@@ -104,7 +104,7 @@ class ContextAwareMarkovBot():
 
             # Remove contractions and potentially other characters
             message = \
-                "".join([ch for ch in message if ch not in string.punctuation])	
+                "".join([ch for ch in message if ch not in "'"])
 
             words = word_tokenize(message)
             tagged_words = pos_tag(words)
@@ -145,7 +145,7 @@ class ContextAwareMarkovBot():
 
             # Remove contractions and potentially other characters
             message = \
-                "".join([ch for ch in message if ch not in string.punctuation])	
+                "".join([ch for ch in message if ch not in "'"])
 
             words = word_tokenize(message)
             tagged_words = pos_tag(words)
