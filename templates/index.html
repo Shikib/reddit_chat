@@ -27,12 +27,36 @@
 
     <div id="modal1" class="modal">
       <div class="modal-content">
-        <h4>Choose your username</h4>
+        {% if not sub%}
+          <h4>Choose your subreddit</h4>
+          <div class="container">
+            <div class="row">
+              <!-- Dropdown Trigger -->
+              <a class='dropdown-button btn' href='#' data-activates='dropdown1'>Subreddits</a>
+
+              <!-- Dropdown Structure -->
+              <ul id='dropdown1' class='dropdown-content'>
+                <li><a href="/r/askreddit">AskReddit</a></li>
+                <li><a href="/r/aww">Aww</a></li>
+                <li><a href="/r/funny">Funny</a></li>
+                <li><a href="/r/science">Science</a></li>
+                <li><a href="/r/DIY">DIY</a></li>
+
+              </ul>
+
+            </div>
+
+          </div>
+          {% else %}
+
+          <h4>Choose your username</h4>
+
         <div class="container">
           <div class="row">
             <input id="username" class="col m12" type="text" name="name" value="">
           </div>
         </div>
+        {% endif %}
       </div>
       <div class="modal-footer">
         <div href="" class=" modal-action modal-close waves-effect waves-green btn-flat">Agree</div>
@@ -50,6 +74,17 @@
             window.location.replace(window.location.href + "/" + $("#username").val());
           }
           $(document).ready(function(){
+            $('select').material_select();
+            $('.dropdown-button').dropdown({
+                  inDuration: 300,
+                  outDuration: 225,
+                  constrain_width: false, // Does not change width of dropdown to that of the activator
+                  hover: true, // Activate on hover
+                  gutter: 0, // Spacing from edge
+                  belowOrigin: false, // Displays dropdown below the button
+                  alignment: 'left' // Displays dropdown with edge aligned to the left of button
+                }
+              );
             $('.modal-trigger').leanModal({
               dismissible: true, // Modal can be dismissed by clicking outside of the modal
               opacity: .5, // Opacity of modal background
