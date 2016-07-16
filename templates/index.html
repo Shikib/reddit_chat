@@ -9,7 +9,16 @@
   <body>
     <header>
       <ul id="slide-out" class="side-nav fixed">
-        <li><a class="modal-trigger" href="#modal1">Change your Username</a></li>
+        <li><a href="/r/AskReddit">r/AskReddit</a></li>
+        <li><a href="/r/funny">r/funny</a></li>
+        <li><a href="/r/pics">r/pics</a></li>
+        <li><a href="/r/science">r/science</a></li>
+        <li><a href="/r/todayilearned">r/todayilearned</a></li>
+        <li><a href="/r/videos">r/videos</a></li>
+        <li><a href="/r/worldnews">r/worldnews</a></li>
+        <li><a href="/r/WTF">r/WTF</a></li>
+
+        <li style="display: none;"><a class="modal-trigger" href="#modal1">Change your Username</a></li>
         <!-- <li><a class="modal-trigger waves-effect waves-light btn" href="#modal1">Pick a Subreddit</a></li> -->
       </ul>
       <a href="#" data-activates="slide-out" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
@@ -111,10 +120,10 @@
                   $chatbox.val(" ")
                 }
               })
-              socket.on('send_message', function(data){
+              socket.on('send_message', function(message, username){
                 $("<div class=\"row\"></div>")
                   .appendTo($chat)
-                  .append("<li class=\"their-messages message col m4\">"+data+"</li>")
+                  .append("<li class=\"their-messages message col m4\">"+username+": "+message+"</li>")
               })
             {% endif %}
 

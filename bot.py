@@ -6,8 +6,8 @@ from nltk import word_tokenize
 from nltk import pos_tag
 
 class ContextAwareMarkovBot():
-    def __init__(self, 
-                 ngram_len=5, 
+    def __init__(self,
+                 ngram_len=5,
                  size_reweight=True,
                  punctuation_dataset=None,
                  style_dataset=None,
@@ -22,8 +22,11 @@ class ContextAwareMarkovBot():
         def _add_to_back(chain):
             potential_next_words = {}
             for depth in range(1, min(self.ngram_len, len(chain))+1):
-                import pdb; pdb.set_trace()
-                gram = chain[-depth:]
+                # import pdb; pdb.set_trace()
+                try:
+                    gram = chain[-depth:]
+                except:
+                    break
 
                 # Turn the gram into a hashable tuple to read from the style graph
                 words = " ".join([t[0] for t in gram])
@@ -41,7 +44,7 @@ class ContextAwareMarkovBot():
                     sorted(all_words, key=lambda w: -all_word_scores[w])[:20]
                 word_scores = {word: all_word_scores[word] for word in top_words}
 
-                # Use the part of speech tag information to determine the next POS 
+                # Use the part of speech tag information to determine the next POS
                 if tags not in self.punctuation_graph:
                     continue
 
@@ -51,7 +54,7 @@ class ContextAwareMarkovBot():
                 pos_scores = {pos: all_pos_scores[pos] for pos in top_pos}
 
                 word_scores = \
-                    {word: 1.0*(word_scores[word]+pos_scores[word[1]])/2 
+                    {word: 1.0*(word_scores[word]+pos_scores[word[1]])/2
                         for word in top_words if word[1] in pos_scores}
 
                 # Update master word list
@@ -70,7 +73,7 @@ class ContextAwareMarkovBot():
 
             potential_next_words = \
                 {word: potential_next_words[word] for word in top_words}
-        
+
             # Choose the next word proportional to its score
             choice = random.random()
             scores_sum = sum(potential_next_words.values())
@@ -79,7 +82,7 @@ class ContextAwareMarkovBot():
                 return None,0
 
             for word,score in potential_next_words.items():
-                choice -= score*1.0/scores_sum 
+                choice -= score*1.0/scores_sum
                 if word[1] == '.' or choice <= 0:
                   return word,score
 
@@ -104,7 +107,7 @@ class ContextAwareMarkovBot():
                     sorted(all_words, key=lambda w: -all_word_scores[w])[:20]
                 word_scores = {word: all_word_scores[word] for word in top_words}
 
-                # Use the part of speech tag information to determine the next POS 
+                # Use the part of speech tag information to determine the next POS
                 if tags not in self.rpunctuation_graph:
                     continue
 
@@ -114,7 +117,7 @@ class ContextAwareMarkovBot():
                 pos_scores = {pos: all_pos_scores[pos] for pos in top_pos}
 
                 word_scores = \
-                    {word: 1.0*(word_scores[word]+pos_scores[word[1]])/2 
+                    {word: 1.0*(word_scores[word]+pos_scores[word[1]])/2
                         for word in top_words if word[1] in pos_scores}
 
                 # Update master word list
@@ -133,7 +136,7 @@ class ContextAwareMarkovBot():
 
             potential_next_words = \
                 {word: potential_next_words[word] for word in top_words}
-        
+
             # Choose the next word proportional to its score
             choice = random.random()
             scores_sum = sum(potential_next_words.values())
@@ -142,13 +145,13 @@ class ContextAwareMarkovBot():
                 return None,0
 
             for word,score in potential_next_words.items():
-                choice -= score*1.0/scores_sum 
+                choice -= score*1.0/scores_sum
                 if word[1] == '.' or choice <= 0:
                   return word,score
-                
+
         prompt = prompt.lower()
         prompt = \
-            "".join([ch for ch in prompt if ch not in "'"]) 
+            "".join([ch for ch in prompt if ch not in "'"])
 
         words = word_tokenize(prompt)
         chain = pos_tag(words)
@@ -157,19 +160,19 @@ class ContextAwareMarkovBot():
         while len(chain) < 30:
             back_word,bscore = _add_to_back(chain)
             front_word,fscore = _add_to_front(chain[::-1])
-     
+
             if bscore > fscore and chain[-1][1] != '.':
                 chain.append(back_word)
             elif chain[0][1] != '.':
                 chain = [front_word] + chain
             else:
                 break
-                    
-        return " ".join([word[0] for word in chain]) 
+
+        return " ".join([word[0] for word in chain])
 
     def train_punctuation(self):
         # Initialize POS graph
-        self.punctuation_graph = {} 
+        self.punctuation_graph = {}
 
         def _add_message_to_punctuation(message):
             score = message[1]
@@ -187,7 +190,7 @@ class ContextAwareMarkovBot():
                 # right after the gram
                 for i in range(len(tagged_words)-gram_len-1):
                     gram = tagged_words[i:i+gram_len]
-                    
+
                     # Turn the gram into a hashable string.
                     tags = " ".join([t[1] for t in gram])
 
@@ -201,7 +204,7 @@ class ContextAwareMarkovBot():
                         self.punctuation_graph[tags][next_word] = 0
 
                     self.punctuation_graph[tags][next_word] += score
-                    
+
         # Need to turn the text into the right format
         messages = self.extract_messages(self.punctuation_dataset)
 
@@ -210,7 +213,7 @@ class ContextAwareMarkovBot():
 
     def reverse_train_punctuation(self):
         # Initialize POS graph
-        self.rpunctuation_graph = {} 
+        self.rpunctuation_graph = {}
 
         def _add_message_to_punctuation(message):
             score = message[1]
@@ -228,7 +231,7 @@ class ContextAwareMarkovBot():
                 # right after the gram
                 for i in range(len(tagged_words)-gram_len-1):
                     gram = tagged_words[i:i+gram_len]
-                    
+
                     # Turn the gram into a hashable string.
                     tags = " ".join([t[1] for t in gram])
 
@@ -242,7 +245,7 @@ class ContextAwareMarkovBot():
                         self.rpunctuation_graph[tags][next_word] = 0
 
                     self.rpunctuation_graph[tags][next_word] += score
-                    
+
         # Need to turn the text into the right format
         messages = self.extract_messages(self.punctuation_dataset)
 
@@ -252,7 +255,7 @@ class ContextAwareMarkovBot():
 
     def train_style(self):
         # Initialize POS graph
-        self.style_graph = {} 
+        self.style_graph = {}
 
         def _add_message_to_style(message):
             score = message[1]
@@ -270,7 +273,7 @@ class ContextAwareMarkovBot():
                 # right after the gram
                 for i in range(len(tagged_words)-gram_len-1):
                     gram = tagged_words[i:i+gram_len]
-                    
+
                     # Turn the gram into a hashable tuple.
                     words = " ".join([t[0] for t in gram])
                     tags = " ".join([t[1] for t in gram])
@@ -286,7 +289,7 @@ class ContextAwareMarkovBot():
                         self.style_graph[gram_tuple][next_word] = 0
 
                     self.style_graph[gram_tuple][next_word] += score
-                    
+
         # Need to turn the text into the right format
         messages = self.extract_messages(self.style_dataset)
 
@@ -295,7 +298,7 @@ class ContextAwareMarkovBot():
 
     def reverse_train_style(self):
         # Initialize POS graph
-        self.rstyle_graph = {} 
+        self.rstyle_graph = {}
 
         def _add_message_to_style(message):
             score = message[1]
@@ -313,7 +316,7 @@ class ContextAwareMarkovBot():
                 # right after the gram
                 for i in range(len(tagged_words)-gram_len-1):
                     gram = tagged_words[i:i+gram_len]
-                    
+
                     # Turn the gram into a hashable tuple.
                     words = " ".join([t[0] for t in gram])
                     tags = " ".join([t[1] for t in gram])
@@ -329,7 +332,7 @@ class ContextAwareMarkovBot():
                         self.rstyle_graph[gram_tuple][next_word] = 0
 
                     self.rstyle_graph[gram_tuple][next_word] += score
-                    
+
         # Need to turn the text into the right format
         messages = self.extract_messages(self.style_dataset)
 
@@ -340,14 +343,17 @@ class ContextAwareMarkovBot():
         messages = []
         with open(filename) as f:
             for i in range(10000):
-                message = f.next()
+                try:
+                    message = f.next()
+                except:
+                    break
                 message = json.loads(message)
                 messages.append((message['body'].lower(), message['score']))
         return messages
 
 if __name__ == '__main__':
     cmb = ContextAwareMarkovBot(ngram_len=10,
-                                punctuation_dataset='AskReddit', 
+                                punctuation_dataset='AskReddit',
                                 style_dataset='AskReddit',
                                 subreddit='AskReddit')
     cmb.train_style()
