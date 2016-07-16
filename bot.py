@@ -17,16 +17,18 @@ class ContextAwareMarkovBot():
         self.style_dataset = style_dataset 
 
     def generate_message(self, prompt):
+        prompt = prompt.lower()
         prompt = \
-            "".join([ch for ch in prompt if ch not in "'"])
+            "".join([ch for ch in prompt if ch not in string.punctuation]) 
 
         words = word_tokenize(prompt)
         chain = pos_tag(words)
 
+        delete_len = 0
         while chain[-1][1] != '.' and len(chain) < 30:
             potential_next_words = {}
             print(chain)
-            for depth in range(2, min(self.ngram_len*2, len(chain))+1):
+            for depth in range(2, min(self.ngram_len, len(chain))+1):
                 gram = chain[-depth:]
 
                 # Turn the gram into a hashable tuple to read from the style graph
@@ -80,7 +82,8 @@ class ContextAwareMarkovBot():
             scores_sum = sum(potential_next_words.values())
 
             if len(potential_next_words.keys()) == 0:
-                chain = chain[:-1]
+                delete_len += 1
+                chain = chain[:-delete_len]
                 continue
 
             for word,score in potential_next_words.items():
@@ -96,9 +99,12 @@ class ContextAwareMarkovBot():
         self.punctuation_graph = {} 
 
         def _add_message_to_punctuation(message):
+            score = message[1]
+            message = message[0]
+
             # Remove contractions and potentially other characters
             message = \
-                "".join([ch for ch in message if ch not in "'"])	
+                "".join([ch for ch in message if ch not in string.punctuation])	
 
             words = word_tokenize(message)
             tagged_words = pos_tag(words)
@@ -121,7 +127,7 @@ class ContextAwareMarkovBot():
                     if next_word not in self.punctuation_graph[tags]:
                         self.punctuation_graph[tags][next_word] = 0
 
-                    self.punctuation_graph[tags][next_word] += 1
+                    self.punctuation_graph[tags][next_word] += score
                     
         # Need to turn the text into the right format
         messages = self.extract_messages(self.punctuation_dataset)
@@ -134,9 +140,12 @@ class ContextAwareMarkovBot():
         self.style_graph = {} 
 
         def _add_message_to_style(message):
+            score = message[1]
+            message = message[0]
+
             # Remove contractions and potentially other characters
             message = \
-                "".join([ch for ch in message if ch not in "'"])	
+                "".join([ch for ch in message if ch not in string.punctuation])	
 
             words = word_tokenize(message)
             tagged_words = pos_tag(words)
@@ -161,7 +170,7 @@ class ContextAwareMarkovBot():
                     if next_word not in self.style_graph[gram_tuple]:
                         self.style_graph[gram_tuple][next_word] = 0
 
-                    self.style_graph[gram_tuple][next_word] += 1
+                    self.style_graph[gram_tuple][next_word] += score
                     
         # Need to turn the text into the right format
         messages = self.extract_messages(self.style_dataset)
@@ -174,7 +183,7 @@ class ContextAwareMarkovBot():
         with open(filename) as f:
             for i in range(10000):
                 message = json.loads(f.next())
-                messages.append(message['body'])
+                messages.append((message['body'].lower(), message['score']))
         return messages
 
 if __name__ == '__main__':
@@ -186,4 +195,3 @@ if __name__ == '__main__':
     cmb.generate_message("How does")
     cmb.generate_message("How can")
     cmb.generate_message("Do you")
-    import pdb; pdb.set_trace()
