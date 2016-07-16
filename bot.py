@@ -181,7 +181,7 @@ class ContextAwareMarkovBot():
     def extract_messages(self, filename):
         messages = []
         with open(filename) as f:
-            for i in range(10000):
+            for i in range(9000):
                 message = json.loads(f.next())
                 messages.append((message['body'].lower(), message['score']))
         return messages
