@@ -23,9 +23,10 @@ class ContextAwareMarkovBot():
         words = word_tokenize(prompt)
         chain = pos_tag(words)
 
-        while chain[-1][1] != '.':
+        while chain[-1][1] != '.' and len(chain) < 30:
             potential_next_words = {}
-            for depth in range(1, self.ngram_len):
+            print(chain)
+            for depth in range(2, min(self.ngram_len*2, len(chain))+1):
                 gram = chain[-depth:]
 
                 # Turn the gram into a hashable tuple to read from the style graph
@@ -63,21 +64,24 @@ class ContextAwareMarkovBot():
                         potential_next_words[word] = 0
 
                     potential_next_words[word] = \
-                        max(potential_next_words[word],
-                            score * depth ** self.size_reweight)
+                        potential_next_words[word] + \
+                        score ** (depth ** self.size_reweight)
 
             # Only consider the top 50 words
             all_words = potential_next_words.keys()
             top_words = \
-                sorted(all_words, key=lambda w: -potential_next_words[w])[:100]
+                sorted(all_words, key=lambda w: -potential_next_words[w])[:50]
+
             potential_next_words = \
                 {word: potential_next_words[word] for word in top_words}
         
-            import pdb; pdb.set_trace()
-
             # Choose the next word proportional to its score
-            scores_sum = sum(potential_next_words.values())
             choice = random.random()
+            scores_sum = sum(potential_next_words.values())
+
+            if len(potential_next_words.keys()) == 0:
+                chain = chain[:-1]
+                continue
 
             for word,score in potential_next_words.items():
                 choice -= score*1.0/scores_sum 
@@ -99,7 +103,7 @@ class ContextAwareMarkovBot():
             words = word_tokenize(message)
             tagged_words = pos_tag(words)
 
-            for gram_len in range(1, self.ngram_len):
+            for gram_len in range(1, self.ngram_len+1):
                 # The minus one is to ensure that we always have a word
                 # right after the gram
                 for i in range(len(tagged_words)-gram_len-1):
@@ -179,4 +183,7 @@ if __name__ == '__main__':
     cmb.train_style()
     cmb.train_punctuation()
     cmb.generate_message("I think")
+    cmb.generate_message("How does")
+    cmb.generate_message("How can")
+    cmb.generate_message("Do you")
     import pdb; pdb.set_trace()
