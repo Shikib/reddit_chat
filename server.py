@@ -1,9 +1,11 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 import json
+import bot
 #Access a file /static/foo.html with the path /foo.html
 app = Flask(__name__, static_url_path="")
 
+cmb = None
 
  #Our routes
 @app.route('/')
@@ -30,6 +32,7 @@ def handle_connection():
 @socketio.on('send_message')
 def handle_myevent(data):
     emit("send_message",data["message"], room=data["room"], include_self=False)
+    emit("send_message",cmb.generate_message(data["message"]), room=data["room"], broadcast=True)
 
 @socketio.on('join_room')
 def enter_user(data):
@@ -37,4 +40,8 @@ def enter_user(data):
     emit("send_message", data["username"] + " has joined the room.", room=data["room"], broadcase=True);
 
 if __name__ == '__main__':
+    cmb = bot.ContextAwareMarkovBot(punctuation_dataset='RC_2015-01',
+                                    style_dataset='RC_2015-01')
+    cmb.train_style()
+    cmb.train_punctuation()
     socketio.run(app, debug=True, port=8000)
