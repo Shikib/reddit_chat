@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{username}} {{sub}}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+    <link rel="stylesheet" href="/css/style.css" media="screen" title="no title" charset="utf-8">
+  </head>
+  <body>
+    <header>
+      <ul id="slide-out" class="side-nav fixed">
+        <li><a class="modal-trigger" href="#modal1">Change your Username</a></li>
+        <!-- <li><a class="modal-trigger waves-effect waves-light btn" href="#modal1">Pick a Subreddit</a></li> -->
+      </ul>
+      <a href="#" data-activates="slide-out" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+    </header>
+
+    <main>
+      <div class="container">
+        <div id="chat">
+        </div>
+        <div class="row">
+          <input id="chat-box" class="col m12" type="text"/>
+        </div>
+      </div>
+    </main>
+
+    <div id="modal1" class="modal">
+      <div class="modal-content">
+        <h4>Choose your username</h4>
+        <div class="container">
+          <div class="row">
+            <input id="username" class="col m12" type="text" name="name" value="">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div href="" class=" modal-action modal-close waves-effect waves-green btn-flat">Agree</div>
+      </div>
+    </div>
+
+
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+
+      <script type="text/javascript" charset="utf-8">
+          function closeWindow(){
+            window.location.replace(window.location.href + "/" + $("#username").val());
+          }
+          $(document).ready(function(){
+            $('.modal-trigger').leanModal({
+              dismissible: true, // Modal can be dismissed by clicking outside of the modal
+              opacity: .5, // Opacity of modal background
+              in_duration: 300, // Transition in duration
+              out_duration: 200, // Transition out duration
+              ready: function() {  }, // Callback for Modal open
+              complete: function() { closeWindow(); } // Callback for Modal close
+            })
+            {% if not username %}
+              .click();
+            {% else %}
+              var socket = io.connect('http://' + document.domain + ':' + location.port);
+              socket.on('connect', function() {
+                  socket.emit('join_room', {username: "{{username}}", room: "{{sub}}"});
+              });
+              $chat = $('#chat');
+              $chatbox = $('#chat-box')
+              $chatbox.keyup(function(event){
+                if(event.keyCode == 13){
+                  socket.emit("send_message", {message: $chatbox.val(), username: "{{username}}", room: "{{sub}}"});
+                  $("<div class=\"row\"></div>")
+                    .appendTo($chat)
+                    .append("<li class=\"my-messages mine message col m4 offset-m8\">"+$chatbox.val()+"</li>")
+                  $chatbox.val(" ")
+                }
+              })
+              socket.on('send_message', function(data){
+                $("<div class=\"row\"></div>")
+                  .appendTo($chat)
+                  .append("<li class=\"their-messages message col m4\">"+data+"</li>")
+              })
+            {% endif %}
+
+          })
+      </script>
+
+  </body>
+</html>
