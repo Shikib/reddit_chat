@@ -10,8 +10,9 @@ if __name__ == '__main__':
         i += 1
         if i % 100000 == 0:
             print(i)
-        line = next(f)
-        if not line:
+        try:
+            line = next(f)
+        except:
             break
         msg = json.loads(line)
         if msg['subreddit'].lower() in subreddits and msg['subreddit'] not in files:
@@ -20,5 +21,3 @@ if __name__ == '__main__':
 
         if msg['subreddit'] in files:
             files[msg['subreddit']].write(line)
-           
-    

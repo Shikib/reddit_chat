@@ -25,11 +25,16 @@
     </header>
 
     <main>
-      <div class="container">
+      <nav>
+        <ul class="left hide-on-med-and-down" id="navBarLinks">
+          <li><a href="#"><b>{{sub}} Chat</b></a></li>
+        </ul>
+      </nav>
+      <div class="chat container">
         <div id="chat">
         </div>
         <div class="row">
-          <input id="chat-box" class="col m12" type="text"/>
+          <input id="chat-box" class="col m12" type="text" placeholder="Enter your message here"/>
         </div>
       </div>
     </main>
@@ -118,12 +123,16 @@
                     .appendTo($chat)
                     .append("<li class=\"my-messages mine message col m4 offset-m8\">"+$chatbox.val()+"</li>")
                   $chatbox.val(" ")
+                  var chat = document.getElementById("chat");
+                  chat.scrollTop = chat.scrollHeight;
                 }
               })
               socket.on('send_message', function(message, username){
                 $("<div class=\"row\"></div>")
                   .appendTo($chat)
                   .append("<li class=\"their-messages message col m4\">"+username+": "+message+"</li>")
+                  var chat = document.getElementById("chat");
+                  chat.scrollTop = chat.scrollHeight;
               })
             {% endif %}
 

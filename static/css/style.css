@@ -9,6 +9,8 @@ body {
 
  ul#slide-out a{
    color: #DDD;
+   height: 40px;
+   line-height: 40px;
  }
 
 /*.message {
@@ -30,15 +32,21 @@ body {
 .their-messages {
   background-color: #F1F0F0;
 }*/
+.chat {
+  height: 80%;
+}
 #chat {
 	list-style-type: none;
 	margin: 0;
-	padding: 0 10px 100px 10px;
-  height: 700px;
-  max-height: 550px;
+	padding: 10px 10px 100px 10px;
+  max-height: 90%;
+  height: 90%;
   width: 100%;
   overflow-y: scroll;
   overflow-x:hidden;
+}
+html{
+  height: 100%;
 }
 #chat:after {
 	display: table;
@@ -62,10 +70,24 @@ body {
 	color: #FFF;
 }
 main {
-  padding-left: 260px;
+  padding-left: 240px;
+}
+
+body, main {
+  height: 100%;
 }
 
 #modal1 {
 
   height: 300px;
+}
+nav {
+  background-color: white;
+}
+nav ul li a {
+  color: black;
+}
+::-webkit-scrollbar {
+    width: 0px;  /* remove scrollbar space */
+    background: transparent;  /* optional: just make scrollbar invisible */
 }
