@@ -1,4 +1,5 @@
 import string
+import json
 
 from nltk import word_tokenize
 from nltk import pos_tag
@@ -7,8 +8,8 @@ class ContextAwareMarkovBot():
     def __init__(self, 
                  ngram_len=5, 
                  size_reweight=True,
-                 punctuation_dataset,
-                 style_dataset):
+                 punctuation_dataset=None,
+                 style_dataset=None):
         self.ngram_len = ngram_len
         self.size_reweight = int(size_reweight)
         self.punctuation_dataset = punctuation_dataset
@@ -47,10 +48,10 @@ class ContextAwareMarkovBot():
                     self.punctuation_graph[tags][next_word] += 1
                     
         # Need to turn the text into the right format
-        messages = extract_messages(self.punctuation_dataset)
+        messages = self.extract_messages(self.punctuation_dataset)
 
         for message in messages:
-            _add_sentence_to_punctuation(message)
+            _add_message_to_punctuation(message)
 
     def train_style(self):
         # Initialize POS graph
@@ -75,20 +76,34 @@ class ContextAwareMarkovBot():
                     tags = " ".join([t[1] for t in gram])
                     gram_tuple = (words,tags)
 
-                    # Identify the type of the word that comes after the gram
-                    next_word = tagged_words[i+gram_len][1]
+                    # Identify the the word that comes after the gram
+                    next_word = tagged_words[i+gram_len]
 
-                    if gram_tuple not in self.punctuation_graph:
-                        self.punctuation_graph[gram_tuple] = {}
+                    if gram_tuple not in self.style_graph:
+                        self.style_graph[gram_tuple] = {}
 
-                    if next_word not in self.punctuation_graph[gram_tuple]:
-                        self.punctuation_graph[gram_tuple][next_word] = 0
+                    if next_word not in self.style_graph[gram_tuple]:
+                        self.style_graph[gram_tuple][next_word] = 0
 
-                    self.punctuation_graph[gram_tuple][next_word] += 1
+                    self.style_graph[gram_tuple][next_word] += 1
                     
         # Need to turn the text into the right format
-        messages = extract_messages(self.style_dataset)
+        messages = self.extract_messages(self.style_dataset)
 
         for message in messages:
-            _add_sentence_to_style(message)
+            _add_message_to_style(message)
 
+    def extract_messages(self, filename):
+        messages = []
+        with open(filename) as f:
+            for i in range(10000):
+                message = json.loads(f.next())
+                messages.append(message['body'])
+        return messages
+
+if __name__ == '__main__':
+    cmb = ContextAwareMarkovBot(punctuation_dataset='RC_2015-01', 
+                                style_dataset='RC_2015-01')
+    cmb.train_style()
+    cmb.train_punctuation()
+    import pdb; pdb.set_trace()
